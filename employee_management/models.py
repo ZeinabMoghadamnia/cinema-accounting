@@ -1,11 +1,12 @@
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
+from core.models import BaseModel
 
 
 # Create your models here.
 
-class CustomUser(AbstractUser):
+class CustomUser(AbstractUser, BaseModel):
     USER_TYPES = (
         ('manager', 'Manager'),
         ('vendor', 'Vendor'),
@@ -30,15 +31,14 @@ class CustomUser(AbstractUser):
         return self.email
 
 
-class EmployeePerformance(models.Model):
+class EmployeePerformance(BaseModel):
     kpi_type = models.CharField(max_length=20, verbose_name='kpi type')
     kpi_value = models.IntegerField(verbose_name='kpi value')
-    date_time = models.DateTimeField(verbose_name='date time')
 
     def __str__(self):
         return self.kpi_type
 
-class PayRoll(models.Model):
+
+class PayRoll(BaseModel):
     salary = models.IntegerField(verbose_name='salary')
-    date_time = models.DateTimeField(verbose_name='date time')
-    employee = models.ForeignKey(CustomUser, on_delete=models.CASCADE, verbose_name='employee')
+    employee = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="pay_roll", verbose_name='employee')
