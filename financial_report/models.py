@@ -18,11 +18,11 @@ class Tax(BaseModel):
         return f"{self.amount} {self.tax_type}"
 
 
-class Daily_Report(BaseModel):
+class DailyReport(BaseModel):
     profit = models.IntegerField(verbose_name='Profit')
     total_revenue = models.IntegerField(verbose_name='Total Revenue')
     total_expense = models.IntegerField(verbose_name='Total Expense')
     total_taxes = models.IntegerField(verbose_name='Total Taxes')
 
     def __str__(self):
-        return self.created_at
+        return f"{self.created_at}"

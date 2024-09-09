@@ -46,7 +46,7 @@ class Revenue(BaseModel):
     cinema = models.ForeignKey(Cinema, on_delete=models.CASCADE, related_name="revenue", verbose_name="cinema")
 
     def __str__(self):
-        return self.ticket_sale
+        return f"{self.ticket_sale}"
 
 
 class Movie(BaseModel):

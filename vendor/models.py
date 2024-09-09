@@ -11,7 +11,7 @@ class Vendor(BaseModel):
     company_name = models.CharField(max_length=50, verbose_name="company name")
 
     def __str__(self):
-        self.company_name = str(self.company_name)
+        return self.company_name
 
 
 class Purchase(BaseModel):
