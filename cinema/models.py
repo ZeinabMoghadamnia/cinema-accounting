@@ -1,6 +1,7 @@
 from django.db import models
 from core.models import BaseModel
 from vendor.models import Vendor
+from financial_report.models import Tax
 
 
 # Create your models here.
@@ -11,42 +12,6 @@ class Cinema(BaseModel):
 
     def __str__(self):
         return self.name
-
-
-class Expense(BaseModel):
-    EXPENSE_TYPES = (
-        ('marketing & advertising', 'Marketing & Advertising'),
-        ('utilities', 'Utilities'),
-        ('rent & insurance', 'Rent & Insurance'),
-        ('other', 'Other'),
-    )
-    expense_type = models.CharField(max_length=50, verbose_name="expense type")
-    amount = models.IntegerField(verbose_name="expense amount")
-    cinema = models.ForeignKey(Cinema, on_delete=models.CASCADE, related_name="expense", verbose_name="cinema")
-    description = models.TextField(verbose_name="expense description", blank=True, null=True)
-    vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.expense_type
-
-
-class Inventory(BaseModel):
-    item_name = models.CharField(max_length=50, verbose_name="item name")
-    quantity = models.IntegerField(verbose_name="quantity")
-    cost = models.IntegerField(verbose_name="cost")
-
-    def __str__(self):
-        return self.item_name
-
-
-class Revenue(BaseModel):
-    ticket_sale = models.IntegerField(verbose_name="ticket sale")
-    concession_sale = models.IntegerField(verbose_name="concession sale")
-    other_income = models.IntegerField(verbose_name="other income")
-    cinema = models.ForeignKey(Cinema, on_delete=models.CASCADE, related_name="revenue", verbose_name="cinema")
-
-    def __str__(self):
-        return f"{self.ticket_sale}"
 
 
 class Movie(BaseModel):
@@ -68,3 +33,42 @@ class Ticket(BaseModel):
 
     def __str__(self):
         return self.Customers_phone_number
+
+
+class Expense(BaseModel):
+    EXPENSE_TYPES = (
+        ('marketing & advertising', 'Marketing & Advertising'),
+        ('utilities', 'Utilities'),
+        ('rent & insurance', 'Rent & Insurance'),
+        ('other', 'Other'),
+    )
+    expense_type = models.CharField(max_length=50, verbose_name="expense type")
+    amount = models.IntegerField(verbose_name="expense amount")
+    cinema = models.ForeignKey(Cinema, on_delete=models.CASCADE, related_name="expense", verbose_name="cinema")
+    description = models.TextField(verbose_name="expense description", blank=True, null=True)
+
+    def __str__(self):
+        return self.expense_type
+
+
+class Inventory(BaseModel):
+    item_name = models.CharField(max_length=50, verbose_name="item name")
+    quantity = models.IntegerField(verbose_name="quantity")
+    cost = models.IntegerField(verbose_name="cost")
+    final_amount = models.IntegerField(verbose_name="final amount")
+    tax = models.ForeignKey(Tax, on_delete=models.CASCADE, related_name="inventory", verbose_name="tax")
+
+    def __str__(self):
+        return self.item_name
+
+
+class Revenue(BaseModel):
+    ticket_sale = models.IntegerField(verbose_name="ticket sale")
+    concession_sale = models.IntegerField(verbose_name="concession sale")
+    other_income = models.IntegerField(verbose_name="other income")
+    final_income = models.IntegerField(verbose_name="final income")
+    cinema = models.ForeignKey(Cinema, on_delete=models.CASCADE, related_name="revenue", verbose_name="cinema")
+    tax = models.ForeignKey(Tax, on_delete=models.CASCADE, related_name="revenue", verbose_name="tax")
+
+    def __str__(self):
+        return f"{self.ticket_sale}"

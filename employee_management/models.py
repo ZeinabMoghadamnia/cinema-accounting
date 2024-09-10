@@ -1,7 +1,12 @@
 from django.contrib.auth.models import AbstractUser, Permission, Group
 from django.core.validators import RegexValidator
 from django.db import models
-from  core.models import BaseModel
+from core.models import BaseModel
+from .managers import CostumeUserManager
+from financial_report.models import Tax
+from django.db.models import Q, UniqueConstraint
+from django.utils import timezone
+
 
 # Create your models here.
 
@@ -21,6 +26,8 @@ class CustomUser(AbstractUser, BaseModel):
     groups = models.ManyToManyField(Group, related_name='customuser_set', blank=True)
     user_permissions = models.ManyToManyField(Permission, related_name='customuser_permission_set', blank=True)
 
+    objects = CostumeUserManager()
+
     USERNAME_FIELD = 'email'
 
     REQUIRED_FIELDS = ['phone_number', 'first_name', 'last_name']
@@ -33,14 +40,34 @@ class CustomUser(AbstractUser, BaseModel):
 
 
 class EmployeePerformance(BaseModel):
-    kpi_type = models.CharField(max_length=20, verbose_name='kpi type')
-    kpi_value = models.IntegerField(verbose_name='kpi value')
+    employee = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='employee_performance_set')
+    PERFORMANCE_TYPES = (
+        ('overtime', 'Overtime'),
+        ('absence', 'Absence'),
+    )
+    performance_type = models.CharField(max_length=20, choices=PERFORMANCE_TYPES, verbose_name='performance type')
+    number_of_hours = models.IntegerField(verbose_name='performance value')
+    date = models.DateField(verbose_name='date', null=True, blank=True)
 
     def __str__(self):
-        return self.kpi_type
+        return self.performance_type
 
-class PayRoll(BaseModel):
+
+class Payroll(BaseModel):
     salary = models.IntegerField(verbose_name='salary')
+    net_salary = models.IntegerField(verbose_name='net salary', null=True, blank=True)
     employee = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="pay_roll", verbose_name='employee')
+    tax = models.ForeignKey(Tax, on_delete=models.CASCADE, related_name="pay_roll", verbose_name='tax')
+    date = models.DateField(verbose_name='date', null=True, blank=True)
+
     def __str__(self):
         return self.employee.last_name
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(
+                fields=['employee'],
+                condition=Q(created_at__year=timezone.now().year, created_at__month=timezone.now().month),
+                name='unique_payroll_per_employee_per_month'
+            )
+        ]

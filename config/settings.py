@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     #my_apps
     'core',
     'cinema',
-    'employee_management',
+    'employee_management.apps.EmployeeManagementConfig',
     'vendor',
     'financial_report',
 
@@ -135,12 +135,12 @@ STATICFILES_DIRS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# AUTH_USER_MODEL = 'employee_management.CustomUser'
+AUTH_USER_MODEL = 'employee_management.CustomUser'
 
-# AUTHENTICATION_BACKENDS = [
-#     'apps.accounts.backends.EmailBackend',
-#     'django.contrib.auth.backends.ModelBackend',
-# ]
+AUTHENTICATION_BACKENDS = [
+    'employee_management.backends.EmailBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
