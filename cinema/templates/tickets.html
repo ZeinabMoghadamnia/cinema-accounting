@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+    sold tickets
+{% endblock %}
+
+{% block content %}
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+    <div class="container">
+        <h1>List of Tickets</h1>
+
+        {% if tickets %}
+            <table>
+                <thead>
+                <tr>
+                    <th>Cinema</th>
+                    <th>Movie</th>
+                    <th>Price</th>
+                    <th>Seat number</th>
+                    <th>Start time</th>
+                    <th>End time</th>
+                    <th>Sales status</th>
+                    <th>Customer</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for ticket in tickets %}
+                    <tr>
+                        <td>{{ ticket.cinema.name }}</td>
+                        <td>{{ ticket.movie.title }}</td>
+                        <td>{{ ticket.price }}</td>
+                        <td>{{ ticket.seat_number }}</td>
+                        <td>{{ ticket.start_time }}</td>
+                        <td>{{ ticket.end_time }}</td>
+                        <td>{{ ticket.is_sold }}</td>
+                        <td>{{ ticket.customers_phone_number }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No tickets available.</p>
+        {% endif %}
+        <form id="ticket-form">
+            <input type="text" id="phone-number" placeholder="شماره تلفن مشتری">
+            <input type="number" id="seat-number" placeholder="شماره صندلی">
+            <input type="number" id="price" placeholder="قیمت">
+            <input>
+            <button type="submit">ایجاد بلیت</button>
+        </form>
+    </div>
+    <script>
+        document.getElementById('ticket-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            const data = {
+                Customers_phone_number: document.getElementById('phone-number').value,
+                seat_number: document.getElementById('seat-number').value,
+                price: document.getElementById('price').value,
+            };
+
+            fetch('/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('بلیت ایجاد شد:', data);
+                })
+                .catch(error => console.error('خطا در ایجاد بلیت:', error));
+        });
+
+        fetch('/cinema/tickets/1/', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                Customers_phone_number: 'جدید'
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log('بلیت به‌روزرسانی شد:', data);
+            });
+
+        fetch('/cinema/tickets/1/', {
+            method: 'DELETE'
+        })
+            .then(response => {
+                if (response.ok) {
+                    console.log('بلیت حذف شد');
+                }
+            });
+    </script>
+
+{% endblock %}

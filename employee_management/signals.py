@@ -28,7 +28,7 @@ def calculate_net_salary(sender, instance, **kwargs):
     overtime_adjustment = overtime_hours * (1.5 * (instance.salary / 160))
     absence_adjustment = absence_hours * (instance.salary / 160)
 
-    tax_amount = instance.tax.tax_percentage if instance.tax else 0
+    tax_amount = instance.tax.tax_percentage if instance.tax and instance.tax.tax_type=='employee tax' else 0
     net_salary = instance.salary - (instance.salary * tax_amount / 100) + overtime_adjustment - absence_adjustment
 
     Payroll.objects.filter(pk=instance.pk).update(net_salary=net_salary)

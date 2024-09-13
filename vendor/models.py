@@ -1,4 +1,6 @@
 from django.db import models
+from django.utils import timezone
+
 from employee_management.models import CustomUser
 from core.models import BaseModel
 
@@ -18,6 +20,7 @@ class Purchase(BaseModel):
     amount = models.IntegerField(verbose_name="amount")
     description = models.CharField(max_length=120, verbose_name="description")
     vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name='purchases', verbose_name="vendor")
+    date = models.DateField(verbose_name="date", default=timezone.now)
 
     def __str__(self):
         return self.description

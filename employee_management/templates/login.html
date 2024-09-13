@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<body>
+<div class="container">
+    <h1>Login</h1>
+
+    <!-- نمایش خطاهای اعتبارسنجی -->
+    {% if errors %}
+        <div style="color: red;">
+            <ul>
+                {% for field, error_list in errors.items %}
+                    {% for error in error_list %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <!-- فرم لاگین -->
+    <form method="POST">
+        {% csrf_token %}
+
+        <div>
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required maxlength="255">
+        </div>
+
+        <div>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required maxlength="68">
+        </div>
+
+        <button type="submit" class="p-1 text-light mt-5" style="background: #9E6DE2; border-radius: 8px;">Login</button>
+    </form>
+</div>
+</body>
+
+{% endblock %}
