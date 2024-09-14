@@ -9,9 +9,9 @@ from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from cinema.models import Ticket, Revenue, Cinema
+from cinema.models import Ticket, Revenue, Cinema, Movie
 from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer
-from cinema.serializers import TicketSerializer, RevenueSerializer
+from cinema.serializers import TicketSerializer, RevenueSerializer, MovieSerializer
 import requests
 from django.test import Client
 from .serializers import CinemaSerializer, TaxSerializer
@@ -20,24 +20,6 @@ from financial_report.models import Tax
 
 
 # Create your views here.
-
-class TicketAPIView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, pk=None):
-        if pk:
-            ticket = get_object_or_404(Ticket, pk=pk)
-            return render(request, 'tickets.html', {'ticket': ticket})
-        else:
-            tickets = Ticket.objects.all().select_related('movie', 'cinema')
-            return render(request, 'tickets.html', {'tickets': tickets})
-
-    def post(self, request, *args, **kwargs):
-        serializer = TicketSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return render(request, 'tickets.html', {'ticket': serializer.instance})
-        return render(request, 'tickets.html', {'errors': serializer.errors})
 
 
 class RevenueListView(APIView):
@@ -50,10 +32,9 @@ class RevenueListView(APIView):
 
     def get(self, request, *args, **kwargs):
         revenues = self.get_queryset()
-        cinemas = Cinema.objects.all()
         taxes = Tax.objects.all()
         serialized_data = self.serializer_class(revenues, many=True).data
-        return Response({'revenues': serialized_data, 'cinemas': cinemas, 'taxes': taxes, 'date': timezone.now().date()})
+        return Response({'revenues': serialized_data, 'taxes': taxes, 'date': timezone.now().date()})
 
 
 
@@ -86,14 +67,11 @@ class RevenueEditAPIView(APIView):
         revenue = get_object_or_404(Revenue, id=revenue_id)
         serializer = RevenueSerializer(revenue)
 
-        cinemas = Cinema.objects.all()
         taxes = Tax.objects.all()
-        cinema_serializer = CinemaSerializer(cinemas, many=True)
         tax_serializer = TaxSerializer(taxes, many=True)
 
         return Response({
             'revenue': serializer.data,
-            'cinemas': cinema_serializer.data,
             'taxes': tax_serializer.data
         })
 
@@ -108,3 +86,72 @@ class RevenueEditAPIView(APIView):
 class RevenueEditTemplateView(LoginRequiredMixin, View):
     def get(self, request, revenue_id):
         return render(request, 'revenue.html', {'revenue_id': revenue_id})
+
+
+#-------------------------------------------------------------------------------------
+
+class TicketListView(APIView):
+    serializer_class = TicketSerializer
+    permission_classes = [IsAuthenticated]
+    template_name = 'tickets.html'
+
+    def get_queryset(self):
+        return Ticket.objects.all()
+
+    def get(self, request, *args, **kwargs):
+        tickets = self.get_queryset()
+        movies = Movie.objects.all()
+        serialized_data = self.serializer_class(tickets, many=True).data
+        return Response({'tickets': serialized_data, 'movies': movies, 'date': timezone.now().date()})
+
+
+
+class TicketCreateView(APIView):
+    serializer_class = TicketSerializer
+    permission_classes = [IsAuthenticated]
+    renderer_classes = [JSONRenderer]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return redirect('cinema:ticket-list')
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class TicketDeleteView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, ticket_id, format=None):
+        ticket = get_object_or_404(Ticket, id=ticket_id)
+        ticket.delete()
+        return Response({'message': 'ticket deleted successfully'}, status=status.HTTP_204_NO_CONTENT, template_name='tickets.html')
+
+
+class TicketEditAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    renderer_classes = [JSONRenderer]
+
+    def get(self, request, ticket_id, format=None):
+        ticket = get_object_or_404(Ticket, id=ticket_id)
+        serializer = TicketSerializer(ticket)
+        movies = Movie.objects.all()
+        movie_serializer = MovieSerializer(movies, many=True)
+
+        return Response({
+            'tickets': serializer.data,
+            'movies': movie_serializer.data
+        })
+
+    def put(self, request, ticket_id, format=None):
+        ticket = get_object_or_404(Ticket, id=ticket_id)
+        serializer = TicketSerializer(ticket, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+
+class TicketEditTemplateView(LoginRequiredMixin, View):
+    def get(self, request, ticket_id):
+        return render(request, 'tickets.html', {'ticket_id': ticket_id})

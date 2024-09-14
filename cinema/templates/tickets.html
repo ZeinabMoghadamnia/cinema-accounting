@@ -1,116 +1,264 @@
-{% extends "base.html" %}
-{% load static %}
-
-{% block title %}
-    sold tickets
-{% endblock %}
+{% extends 'base.html' %}
 
 {% block content %}
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            padding: 8px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        th {
-            background-color: #f2f2f2;
-        }
-    </style>
-    <div class="container">
-        <h1>List of Tickets</h1>
-
-        {% if tickets %}
-            <table>
-                <thead>
+    <div class="container mt-5">
+        <h2>Ticket List</h2>
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>Date</th>
+                <th>movie</th>
+                <th>start time</th>
+                <th>end time</th>
+                <th>seat number</th>
+                <th>price</th>
+                <th>customer phone number</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for ticket in tickets %}
                 <tr>
-                    <th>Cinema</th>
-                    <th>Movie</th>
-                    <th>Price</th>
-                    <th>Seat number</th>
-                    <th>Start time</th>
-                    <th>End time</th>
-                    <th>Sales status</th>
-                    <th>Customer</th>
+                    <td>{{ ticket.date }}</td>
+                    <td>{{ ticket.movie.title }}</td>
+                    <td>{{ ticket.start_time }}</td>
+                    <td>{{ ticket.end_time }}</td>
+                    <td>{{ ticket.seat_number }}</td>
+                    <td>{{ ticket.price }}</td>
+                    <td>{{ ticket.customers_phone_number }}</td>
+                    <td>
+                        <button onclick="loadTicketForEdit({{ ticket.id }})" class="btn btn-primary p-1">Edit</button>
+                        <button class="btn btn-danger p-1" onclick="deleteTicket({{ ticket.id }})">Delete</button>
+                    </td>
                 </tr>
-                </thead>
-                <tbody>
-                {% for ticket in tickets %}
-                    <tr>
-                        <td>{{ ticket.cinema.name }}</td>
-                        <td>{{ ticket.movie.title }}</td>
-                        <td>{{ ticket.price }}</td>
-                        <td>{{ ticket.seat_number }}</td>
-                        <td>{{ ticket.start_time }}</td>
-                        <td>{{ ticket.end_time }}</td>
-                        <td>{{ ticket.is_sold }}</td>
-                        <td>{{ ticket.customers_phone_number }}</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p>No tickets available.</p>
-        {% endif %}
-        <form id="ticket-form">
-            <input type="text" id="phone-number" placeholder="شماره تلفن مشتری">
-            <input type="number" id="seat-number" placeholder="شماره صندلی">
-            <input type="number" id="price" placeholder="قیمت">
-            <input>
-            <button type="submit">ایجاد بلیت</button>
-        </form>
-    </div>
-    <script>
-        document.getElementById('ticket-form').addEventListener('submit', function (event) {
-            event.preventDefault();
+                <tr id="edit-row-{{ ticket.id }}" style="display: none;">
+                    <td colspan="12">
+                        <!-- فرم ویرایش -->
+                        <form id="editTicketForm-{{ ticket.id }}" method="post" class="row">
+                            {% csrf_token %}
+                            <div class="col col-4 form-group">
+                                <label for="edit_movie_{{ ticket.id }}">movie</label>
+                                <select class="form-control" id="edit_movie_{{ ticket.id }}" name="movie_id" required>
+                                    <!-- Filled dynamically with JavaScript -->
+                                </select>
+                            </div>
+                            <div class="col col-4 form-group">
+                                <label for="edit_date_{{ ticket.id }}">date</label>
+                                <input type="date" class="form-control" id="edit_date_{{ ticket.id }}"
+                                       name="date" required>
+                            </div>
+                            <div class="col col-4 form-group">
+                                <label for="edit_start_time_{{ ticket.id }}">start time</label>
+                                <input type="time" class="form-control" id="edit_start_time_{{ ticket.id }}"
+                                       name="start_time">
+                            </div>
+                            <div class="col col-4 form-group">
+                                <label for="edit_end_time_{{ ticket.id }}">end time</label>
+                                <input type="time" class="form-control" id="edit_end_time_{{ ticket.id }}"
+                                       name="end_time"
+                                       required>
+                            </div>
 
+                            <div class="col col-4 form-group">
+                                <label for="edit_seat_number_{{ ticket.id }}">seat number</label>
+                                <input type="number" class="form-control" id="edit_seat_number_{{ ticket.id }}"
+                                       name="seat_number" required>
+                            </div>
+
+                            <div class="col col-4 form-group">
+                                <label for="edit_price_{{ ticket.id }}">price</label>
+                                <input type="number" class="form-control" id="edit_price_{{ ticket.id }}"
+                                       name="price" required>
+                            </div>
+
+                            <div class="col col-4 form-group">
+                                <label for="edit_customers_phone_number_{{ ticket.id }}">customers phone number</label>
+                                <input type="text" class="form-control" id="edit_customers_phone_number_{{ ticket.id }}"
+                                       name="customers_phone_number" required>
+                            </div>
+
+                            <div class="align-items-center d-flex justify-content-end">
+                                <button type="button" class="btn btn-success"
+                                        onclick="saveEditedTicket({{ ticket.id }})">
+                                    Save Changes
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="cancelEdit({{ ticket.id }})">
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="5">No tickets found.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <h3 id="form-title">Add New ticket</h3>
+        <form id="ticketForm" method="post" action="{% url 'cinema:ticket-create' %}">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="movie">Movie</label>
+                <select class="form-control" id="movie" name="movie_id" required>
+                    <option value="">Select a moive</option>
+                    {% for movie in movies %}
+                        <option value="{{ movie.id }}">{{ movie.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="start_time">start time</label>
+                <input type="time" class="form-control" id="start_time" name="start_time">
+            </div>
+            <div class="form-group">
+                <label for="end_time">end time</label>
+                <input type="time" class="form-control" id="end_time" name="end_time">
+            </div>
+
+
+            <div class="form-group">
+                <label for="date">date</label>
+                <input type="date" class="form-control" id="date" name="date" value="{{ date }}" required>
+            </div>
+            <div class="form-group">
+                <label for="price">price</label>
+                <input type="number" class="form-control" id="price" name="price" required>
+            </div>
+
+            <div class="form-group">
+                <label for="seat_number">seat number</label>
+                <input type="number" class="form-control" id="seat_number" name="seat_number" required>
+            </div>
+
+            <div class="form-group">
+                <label for="customers_phone_number">customers phone number</label>
+                <input type="text" class="form-control" id="customers_phone_number" name="customers_phone_number">
+            </div>
+            <button type="submit" class="btn btn-success">Save ticket</button>
+            <button type="button" class="btn btn-secondary" id="cancelEdit" onclick="resetForm()"
+                    style="display: none;">Cancel
+            </button>
+        </form>
+
+    </div>
+
+
+    <script>
+        function deleteTicket(ticketId) {
+            if (confirm('Are you sure you want to delete this ticket?')) {
+                fetch(`{% url 'cinema:ticket-delete' 0 %}`.replace('0', ticketId), {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json'
+                    },
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            alert('Ticket deleted successfully');
+                            window.location.reload();
+                        } else {
+                            alert('Failed to delete ticket');
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+        }
+
+    </script>
+    <script>
+        function loadTicketForEdit(ticketId) {
+            const url = `{% url 'cinema:ticket-edit-api' 0 %}`.replace('0', ticketId);
+
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Ticket not found');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log(data);
+
+                    const ticket = data.tickets;
+                    const movies = data.movies;
+
+                    if (ticket) {
+                        document.getElementById('edit_date_' + ticketId).value = ticket.date;
+                        const movieSelect = document.getElementById('edit_movie_' + ticketId);
+                        movieSelect.innerHTML = '';
+                        movies.forEach(movie => {
+                            const option = document.createElement('option');
+                            option.value = movie.id;
+                            option.text = `${movie.title}`;
+                            option.selected = ticket.movie.id === movie.id;  // اطمینان از انتخاب صحیح
+                            movieSelect.appendChild(option);
+                        });
+                        document.getElementById('edit_start_time_' + ticketId).value = ticket.start_time;
+                        document.getElementById('edit_end_time_' + ticketId).value = ticket.end_time;
+                        document.getElementById('edit_seat_number_' + ticketId).value = ticket.seat_number;
+                        document.getElementById('edit_price_' + ticketId).value = ticket.price;
+                        document.getElementById('edit_customers_phone_number_' + ticketId).value = ticket.customers_phone_number || '';
+                        // Show edit row
+                        document.getElementById('edit-row-' + ticketId).style.display = 'table-row';
+                    } else {
+                        console.error('Ticket data is missing');
+                    }
+                })
+                .catch(error => console.error('Error loading ticket for edit:', error));
+        }
+
+        function cancelEdit(ticketId) {
+            // پنهان کردن فرم ویرایش
+            document.getElementById('edit-row-' + ticketId).style.display = 'none';
+        }
+
+        function saveEditedTicket(ticketId) {
             const data = {
-                Customers_phone_number: document.getElementById('phone-number').value,
-                seat_number: document.getElementById('seat-number').value,
-                price: document.getElementById('price').value,
+                start_time: document.getElementById('edit_start_time_' + ticketId).value,
+                end_time: document.getElementById('edit_end_time_' + ticketId).value,
+                seat_number: document.getElementById('edit_seat_number_' + ticketId).value,
+                price: document.getElementById('edit_price_' + ticketId).value,
+                date: document.getElementById('edit_date_' + ticketId).value,
+                customers_phone_number: document.getElementById('edit_customers_phone_number_' + ticketId).value,
+                movie_id: document.getElementById('edit_movie_' + ticketId).value,  // اطمینان از اینکه movie_id خوانده می‌شود
             };
 
-            fetch('/', {
-                method: 'POST',
+            const url = `{% url 'cinema:ticket-edit-api' 0 %}`.replace('0', ticketId);
+
+            fetch(url, {
+                method: 'PUT',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
                 },
                 body: JSON.stringify(data)
             })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('بلیت ایجاد شد:', data);
+                .then(response => response.json().then(data => ({
+                    status: response.status,
+                    body: data
+                }))) // Get status and body
+                .then(result => {
+                    if (result.status === 200) {
+                        alert('Ticket updated successfully');
+                        window.location.reload();
+                    } else {
+                        console.error('Failed to update ticket:', result.body);  // Log the detailed error
+                        alert('Failed to update ticket: ' + JSON.stringify(result.body));
+                    }
                 })
-                .catch(error => console.error('خطا در ایجاد بلیت:', error));
-        });
-
-        fetch('/cinema/tickets/1/', {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                Customers_phone_number: 'جدید'
-            })
-        })
-            .then(response => response.json())
-            .then(data => {
-                console.log('بلیت به‌روزرسانی شد:', data);
-            });
-
-        fetch('/cinema/tickets/1/', {
-            method: 'DELETE'
-        })
-            .then(response => {
-                if (response.ok) {
-                    console.log('بلیت حذف شد');
-                }
-            });
+                .catch(error => console.error('Error updating ticket:', error));
+        }
     </script>
-
 {% endblock %}

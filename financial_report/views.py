@@ -81,17 +81,13 @@ class FinancialReportView(APIView):
 
 class ChartAPIView(APIView):
     renderer_classes = [JSONRenderer]
-    """
-    API view to get daily report data for chart.
-    """
+
     def get(self, request, *args, **kwargs):
-        # دریافت تاریخ‌های شروع و پایان از پارامترهای URL
         start_date = request.GET.get('start_date')
         end_date = request.GET.get('end_date')
 
         reports = DailyReport.objects.all()
 
-        # فیلتر کردن بر اساس تاریخ‌های شروع و پایان، در صورت وجود
         if start_date and end_date:
             reports = reports.filter(date__range=[parse_date(start_date), parse_date(end_date)])
 
@@ -99,7 +95,4 @@ class ChartAPIView(APIView):
         return Response(serializer.data)
 
 def chart_view(request):
-    """
-    View to render template with chart.
-    """
     return render(request, 'charts.html')

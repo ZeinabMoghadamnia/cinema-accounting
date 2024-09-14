@@ -21,7 +21,7 @@
                     <td>{{ revenue.ticket_sale }}</td>
                     <td>{{ revenue.concession_sale }}</td>
                     <td>{{ revenue.other_income }}</td>
-                    <td>{{ revenue.tax.tax_type }} - {{ revenue.tax.tax_percentage }}</td>
+                    <td>{{ revenue.tax.tax_type }} - {{ revenue.tax.tax_percentage }}%</td>
                     <td>
                         <button onclick="loadRevenueForEdit({{ revenue.id }})" class="btn btn-primary">Edit</button>
                         <button class="btn btn-danger" onclick="deleteRevenue({{ revenue.id }})">Delete</button>
@@ -47,12 +47,7 @@
                                 <input type="number" class="form-control" id="edit_other_income_{{ revenue.id }}"
                                        name="other_income">
                             </div>
-                            <div class="col col-4 form-group">
-                                <label for="edit_cinema_{{ revenue.id }}">Cinema</label>
-                                <select class="form-control" id="edit_cinema_{{ revenue.id }}" name="cinema" required>
-                                    <!-- Filled dynamically with JavaScript -->
-                                </select>
-                            </div>
+
                             <div class="col col-4 form-group">
                                 <label for="edit_tax_{{ revenue.id }}">Tax</label>
                                 <select class="form-control" id="edit_tax_{{ revenue.id }}" name="tax" required>
@@ -64,12 +59,15 @@
                                 <input type="date" class="form-control" id="edit_date_{{ revenue.id }}" name="date"
                                        required>
                             </div>
-                            <button type="button" class="btn btn-success" onclick="saveEditedRevenue({{ revenue.id }})">
-                                Save Changes
-                            </button>
-                            <button type="button" class="btn btn-secondary" onclick="cancelEdit({{ revenue.id }})">
-                                Cancel
-                            </button>
+                            <div class="col col-4 align-items-center d-flex justify-content-center">
+                                <button type="button" class="btn btn-success"
+                                        onclick="saveEditedRevenue({{ revenue.id }})">
+                                    Save Changes
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="cancelEdit({{ revenue.id }})">
+                                    Cancel
+                                </button>
+                            </div>
                         </form>
                     </td>
                 </tr>
@@ -101,16 +99,6 @@
                 <input type="number" class="form-control" id="other_income" name="other_income">
             </div>
 
-            <!-- Cinema Field (Dropdown Selection) -->
-            <div class="form-group">
-                <label for="cinema">Cinema</label>
-                <select class="form-control" id="cinema" name="cinema" required>
-                    <option value="">Select a cinema</option>
-                    {% for cinema in cinemas %}
-                        <option value="{{ cinema.id }}">{{ cinema.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
 
             <!-- Tax Field (Dropdown Selection) -->
             <div class="form-group">
@@ -181,7 +169,6 @@
                 })
                 .then(data => {
                     const revenue = data.revenue;
-                    const cinemas = data.cinemas;
                     const taxes = data.taxes;
 
                     // پر کردن فیلدهای فرم با اطلاعات دریافتی
@@ -190,25 +177,15 @@
                     document.getElementById('edit_other_income_' + revenueId).value = revenue.other_income;
                     document.getElementById('edit_date_' + revenueId).value = revenue.date;
 
-                    // پر کردن انتخاب سینما
-                    const cinemaSelect = document.getElementById('edit_cinema_' + revenueId);
-                    cinemaSelect.innerHTML = '';  // پاک کردن انتخاب‌های قبلی
-                    cinemas.forEach(cinema => {
-                        const option = document.createElement('option');
-                        option.value = cinema.id;
-                        option.text = cinema.name;
-                        option.selected = revenue.cinema === cinema.id;  // انتخاب سینمای فعلی
-                        cinemaSelect.appendChild(option);
-                    });
 
                     // پر کردن انتخاب مالیات
                     const taxSelect = document.getElementById('edit_tax_' + revenueId);
-                    taxSelect.innerHTML = '';  // پاک کردن انتخاب‌های قبلی
+                    taxSelect.innerHTML = '';
                     taxes.forEach(tax => {
                         const option = document.createElement('option');
                         option.value = tax.id;
                         option.text = `${tax.tax_type} - ${tax.tax_percentage}%`;
-                        option.selected = revenue.tax === tax.id;  // انتخاب مالیات فعلی
+                        option.selected = revenue.tax === tax.id;
                         taxSelect.appendChild(option);
                     });
 
@@ -228,7 +205,6 @@
                 ticket_sale: document.getElementById('edit_ticket_sale_' + revenueId).value,
                 concession_sale: document.getElementById('edit_concession_sale_' + revenueId).value,
                 other_income: document.getElementById('edit_other_income_' + revenueId).value,
-                cinema: document.getElementById('edit_cinema_' + revenueId).value,
                 tax: document.getElementById('edit_tax_' + revenueId).value,
                 date: document.getElementById('edit_date_' + revenueId).value,
             };

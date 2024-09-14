@@ -7,9 +7,9 @@ from  .models import EmployeePerformance, Payroll, CustomUser
 class CustomUserAdmin(UserAdmin):
     model = CustomUser
     list_display = ('email', 'phone_number', 'first_name', 'last_name', 'is_active', 'user_type')
-    list_filter = ('is_active', 'user_type')
+    list_filter = ('is_active', 'user_type', 'workplace')
     fieldsets = (
-        (None, {'fields': ('email', 'password')}),
+        (None, {'fields': ('email', 'password', 'workplace')}),
         ('Personal Info', {'fields': ('first_name', 'last_name', 'phone_number', 'user_type')}),
         ('Permissions', {'fields': ('is_active', 'groups', 'user_permissions')}),
     )

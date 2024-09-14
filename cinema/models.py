@@ -29,11 +29,10 @@ class Ticket(BaseModel):
                                               verbose_name="Customers phone number")
     seat_number = models.IntegerField(verbose_name="seat number")
     price = models.IntegerField(verbose_name="price")
-    start_time = models.DateTimeField(verbose_name="start time")
-    end_time = models.DateTimeField(verbose_name="end time")
+    start_time = models.TimeField(verbose_name="start time")
+    end_time = models.TimeField(verbose_name="end time")
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE, related_name="movie_ticket", verbose_name="movie")
-    cinema = models.ForeignKey(Cinema, on_delete=models.CASCADE, related_name="cinema_ticket", verbose_name="cinema")
-    is_sold = models.BooleanField(default=False, verbose_name="is sold")
+    # is_sold = models.BooleanField(default=False, verbose_name="is sold")
     date = models.DateField(verbose_name="date", default=timezone.now)
 
     def __str__(self):
@@ -73,7 +72,6 @@ class Revenue(BaseModel):
     ticket_sale = models.IntegerField(verbose_name="ticket sale")
     concession_sale = models.IntegerField(verbose_name="concession sale")
     other_income = models.IntegerField(verbose_name="other income")
-    cinema = models.ForeignKey(Cinema, on_delete=models.CASCADE, related_name="revenue", verbose_name="cinema")
     tax = models.ForeignKey(Tax, on_delete=models.CASCADE, related_name="revenue", verbose_name="tax")
     date = models.DateField(verbose_name='date', default=timezone.now)
 
