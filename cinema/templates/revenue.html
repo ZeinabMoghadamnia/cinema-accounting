@@ -50,7 +50,7 @@
 
                             <div class="col col-4 form-group">
                                 <label for="edit_tax_{{ revenue.id }}">Tax</label>
-                                <select class="form-control" id="edit_tax_{{ revenue.id }}" name="tax" required>
+                                <select class="form-control" id="edit_tax_{{ revenue.id }}" name="" required>
                                     <!-- Filled dynamically with JavaScript -->
                                 </select>
                             </div>
@@ -103,10 +103,10 @@
             <!-- Tax Field (Dropdown Selection) -->
             <div class="form-group">
                 <label for="tax">Tax</label>
-                <select class="form-control" id="tax" name="tax" required>
-                    <option value="">Select a tax type</option>
+                <select class="form-control" id="tax" name="tax_id" required>
+                    <option value="">Select a tax</option>
                     {% for tax in taxes %}
-                        <option value="{{ tax.id }}">{{ tax.tax_type }} - {{ tax.tax_percentage }}%</option>
+                        <option value="{{ tax.id }}">{{ tax.tax_type }} - {{ tax.tax_percentage }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -185,7 +185,7 @@
                         const option = document.createElement('option');
                         option.value = tax.id;
                         option.text = `${tax.tax_type} - ${tax.tax_percentage}%`;
-                        option.selected = revenue.tax === tax.id;
+                        option.selected = revenue.tax_id === tax.id;
                         taxSelect.appendChild(option);
                     });
 
@@ -205,10 +205,10 @@
                 ticket_sale: document.getElementById('edit_ticket_sale_' + revenueId).value,
                 concession_sale: document.getElementById('edit_concession_sale_' + revenueId).value,
                 other_income: document.getElementById('edit_other_income_' + revenueId).value,
-                tax: document.getElementById('edit_tax_' + revenueId).value,
+                tax_id: document.getElementById('edit_tax_' + revenueId).value,
                 date: document.getElementById('edit_date_' + revenueId).value,
             };
-
+            console.log('Tax Value:', data.tax);
             const url = `{% url 'cinema:revenue-edit-api' 0 %}`.replace('0', revenueId);
 
             fetch(url, {

@@ -1,6 +1,7 @@
 from django.apps import AppConfig
 
-
-class CinemaConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
+class YourAppNameConfig(AppConfig):
     name = 'cinema'
+
+    def ready(self):
+        import cinema.signals

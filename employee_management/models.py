@@ -27,13 +27,6 @@ class CustomUser(AbstractUser, BaseModel):
     groups = models.ManyToManyField(Group, related_name='customuser_set', blank=True)
     user_permissions = models.ManyToManyField(Permission, related_name='customuser_permission_set', blank=True)
     is_active = models.BooleanField(default=False, verbose_name='active')
-    workplace = models.ForeignKey(
-        'cinema.Cinema',  # Refer to the model as a string instead of importing
-        related_name='cinema',
-        verbose_name='workplace',
-        on_delete=models.SET_NULL,
-        null=True,  # Added null=True for better ForeignKey handling
-    )
     objects = CostumeUserManager()
 
     USERNAME_FIELD = 'email'

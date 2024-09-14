@@ -1,6 +1,7 @@
 from rest_framework import serializers
-from .models import Ticket, Revenue, Cinema, Movie
+from .models import Ticket, Revenue, Cinema, Movie, Expense, Inventory
 from financial_report.models import Tax
+from financial_report.serializers import TaxSerializer
 
 
 class MovieSerializer(serializers.ModelSerializer):
@@ -23,18 +24,32 @@ class TicketSerializer(serializers.ModelSerializer):
         ]
 
 
-class TaxSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Tax
-        fields = ['tax_type', 'tax_percentage']
 
+class InventorySerializer(serializers.ModelSerializer):
+    tax = TaxSerializer(read_only=True)
+    tax_id = serializers.PrimaryKeyRelatedField(
+        queryset=Tax.objects.all(), source='tax', write_only=True
+    )
+
+    class Meta:
+        model = Inventory
+        fields = ['id', 'date', 'item_name', 'quantity', 'tax', 'tax_id', 'cost']
 
 class RevenueSerializer(serializers.ModelSerializer):
-    tax = TaxSerializer()
+    tax = TaxSerializer(read_only=True)
+    tax_id = serializers.PrimaryKeyRelatedField(
+        queryset=Tax.objects.all(), source='tax', write_only=True
+    )
 
     class Meta:
         model = Revenue
-        fields = ['id', 'ticket_sale', 'concession_sale', 'other_income', 'tax', 'date']
+        fields = ['id', 'ticket_sale', 'concession_sale', 'other_income', 'tax', 'tax_id', 'date']
+
+class ExpenseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Expense
+        fields = '__all__'
+
 
 
 class CinemaSerializer(serializers.ModelSerializer):

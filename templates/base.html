@@ -146,18 +146,24 @@
 
                     <li
                     >
-                        <a class="sidenav-item-link" href="team.html">
+                        <a class="sidenav-item-link" href="{% url 'cinema:expense-list' %}">
                             <i class="mdi mdi-account-group"></i>
-                            <span class="nav-text">Team</span>
+                            <span class="nav-text">Expense</span>
                         </a>
                     </li>
 
 
-                    <li
-                    >
-                        <a class="sidenav-item-link" href="calendar.html">
+                    <li>
+                        <a class="sidenav-item-link" href="{% url 'cinema:inventory-list' %}">
                             <i class="mdi mdi-calendar-check"></i>
-                            <span class="nav-text">Calendar</span>
+                            <span class="nav-text">Inventory</span>
+                        </a>
+                    </li>
+
+                    <li>
+                        <a class="sidenav-item-link" href="{% url 'vendor:purchase-list' %}">
+                            <i class="mdi mdi-calendar-check"></i>
+                            <span class="nav-text">Purchase</span>
                         </a>
                     </li>
 

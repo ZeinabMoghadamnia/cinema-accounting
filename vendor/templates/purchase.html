@@ -1,0 +1,235 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h2>Purchase List</h2>
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>date</th>
+                <th>item name</th>
+                <th>quantity</th>
+                <th>cost</th>
+                <th>tax</th>
+                <th>final cost</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for purchase in purchases %}
+                <tr>
+                    <td>{{ purchase.date }}</td>
+                    <td>{{ purchase.item_name }}</td>
+                    <td>{{ purchase.quantity }}</td>
+                    <td>{{ purchase.cost }}</td>
+                    <td>{{ purchase.tax.tax_type }} - {{ purchase.tax.tax_percentage }}%</td>
+                    <td>{{ purchase.total_cost_with_tax }}</td>
+                    <td>
+                        <button onclick="loadPurchaseForEdit({{ purchase.id }})" class="btn btn-primary">Edit</button>
+                        <button class="btn btn-danger" onclick="deletePurchase({{ purchase.id }})">Delete</button>
+                    </td>
+                </tr>
+                <tr id="edit-row-{{ purchase.id }}" style="display: none;">
+                    <td colspan="6">
+                        <!-- فرم ویرایش -->
+                        <form id="editPurchaseForm-{{ purchase.id }}" method="post" class="row">
+                            {% csrf_token %}
+                            <div class="col col-4 form-group">
+                                <label for="edit_item_name_{{ purchase.id }}">item name</label>
+                                <input type="text" class="form-control" id="edit_item_name_{{ purchase.id }}"
+                                       name="item_name" required>
+                            </div>
+                            <div class="col col-4 form-group">
+                                <label for="edit_quantity_{{ purchase.id }}">quantity</label>
+                                <input type="number" class="form-control" id="edit_quantity_{{ purchase.id }}"
+                                       name="quantity" required>
+                            </div>
+                            <div class="col col-4 form-group">
+                                <label for="edit_cost_{{ purchase.id }}">cost</label>
+                                <input type="number" class="form-control" id="edit_cost_{{ purchase.id }}"
+                                       name="cost">
+                            </div>
+
+                            <div class="col col-4 form-group">
+                                <label for="edit_tax_{{ purchase.id }}">tax</label>
+                                <select class="form-control" id="edit_tax_{{ purchase.id }}" name="tax_id" required>
+                                    <!-- Filled dynamically with JavaScript -->
+                                </select>
+                            </div>
+                            <div class="col col-4 form-group">
+                                <label for="edit_date_{{ purchase.id }}">date</label>
+                                <input type="date" class="form-control" id="edit_date_{{ purchase.id }}" name="date"
+                                       required>
+                            </div>
+                            <div class="col col-4 align-items-center d-flex justify-content-center">
+                                <button type="button" class="btn btn-success"
+                                        onclick="saveEditedPurchase({{ purchase.id }})">
+                                    Save Changes
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="cancelEdit({{ purchase.id }})">
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="5">No inventories found.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <h3 id="form-title">Add New Purchase</h3>
+        <form id="purchaseForm" method="post" action="{% url 'vendor:purchase-create' %}">
+            {% csrf_token %}
+            <!-- Ticket Sale Field -->
+            <div class="form-group">
+                <label for="item_name">item name</label>
+                <input type="text" class="form-control" id="item_name" name="item_name" required>
+            </div>
+
+            <!-- Concession Sale Field -->
+            <div class="form-group">
+                <label for="quantity">quantity</label>
+                <input type="number" class="form-control" id="quantity" name="quantity" required>
+            </div>
+
+            <!-- Other Income Field -->
+            <div class="form-group">
+                <label for="cost">cost</label>
+                <input type="number" class="form-control" id="cost" name="cost">
+            </div>
+
+
+            <!-- Tax Field (Dropdown Selection) -->
+            <div class="form-group">
+                <label for="tax">tax</label>
+                <select class="form-control" id="tax" name="tax_id" required>
+                    <option value="">Select a tax</option>
+                    {% for tax in taxes %}
+                        <option value="{{ tax.id }}">{{ tax.tax_type }} - {{ tax.tax_percentage }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Date Field -->
+            <div class="form-group">
+                <label for="date">date</label>
+                <input type="date" class="form-control" id="date" name="date" value="{{ date }}" required>
+            </div>
+
+            <button type="submit" class="btn btn-success">Save purchase</button>
+            <button type="button" class="btn btn-secondary" id="cancelEdit" onclick="resetForm()"
+                    style="display: none;">Cancel
+            </button>
+        </form>
+
+    </div>
+
+
+    <script>
+        function deletePurchase(purchaseId) {
+            if (confirm('Are you sure you want to delete this purchase?')) {
+                fetch(`{% url 'vendor:purchase-delete' 0 %}`.replace('0', purchaseId), {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json'
+                    },
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            alert('purchase deleted successfully');
+                            window.location.reload();
+                        } else {
+                            alert('Failed to delete purchase');
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+        }
+
+    </script>
+    <script>
+        function loadPurchaseForEdit(purchaseId) {
+            const url = `{% url 'vendor:purchase-edit-api' 0 %}`.replace('0', purchaseId);
+
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Purchase not found');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const purchase = data.purchase;
+                    const taxes = data.taxes;
+
+                    // پر کردن فیلدهای فرم با اطلاعات دریافتی
+                    document.getElementById('edit_item_name_' + purchaseId).value = purchase.item_name;
+                    document.getElementById('edit_quantity_' + purchaseId).value = purchase.quantity;
+                    document.getElementById('edit_cost_' + purchaseId).value = purchase.cost;
+                    document.getElementById('edit_date_' + purchaseId).value = purchase.date;
+
+
+                    // پر کردن انتخاب مالیات
+                    const taxSelect = document.getElementById('edit_tax_' + purchaseId);
+                    taxSelect.innerHTML = '';
+                    taxes.forEach(tax => {
+                        const option = document.createElement('option');
+                        option.value = tax.id;
+                        option.text = `${tax.tax_type} - ${tax.tax_percentage}%`;
+                        option.selected = purchase.tax_id === tax.id;
+                        taxSelect.appendChild(option);
+                    });
+
+                    // نمایش فرم ویرایش زیر سطر مربوطه
+                    document.getElementById('edit-row-' + purchaseId).style.display = 'table-row';
+                })
+                .catch(error => console.error('Error loading purchase for edit:', error));
+        }
+
+        function cancelEdit(purchaseId) {
+            // پنهان کردن فرم ویرایش
+            document.getElementById('edit-row-' + purchaseId).style.display = 'none';
+        }
+
+        function saveEditedPurchase(purchaseId) {
+            const data = {
+                item_name: document.getElementById('edit_item_name_' + purchaseId).value,
+                quantity: document.getElementById('edit_quantity_' + purchaseId).value,
+                cost: document.getElementById('edit_cost_' + purchaseId).value,
+                tax_id: document.getElementById('edit_tax_' + purchaseId).value,
+                date: document.getElementById('edit_date_' + purchaseId).value,
+            };
+            console.log('Tax Value:', data.tax);
+            const url = `{% url 'vendor:purchase-edit-api' 0 %}`.replace('0', purchaseId);
+
+            fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert('Purchase updated successfully');
+                        window.location.reload();
+                    } else {
+                        alert('Failed to update purchase');
+                    }
+                })
+                .catch(error => console.error('Error updating purchase:', error));
+        }
+    </script>
+{% endblock %}

@@ -1,6 +1,8 @@
 from django.apps import AppConfig
 
 
-class VendorConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
+class InventoryAppConfig(AppConfig):
     name = 'vendor'
+
+    def ready(self):
+        import vendor.signals

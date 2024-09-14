@@ -25,5 +25,5 @@ urlpatterns = [
                   path('cimena/', include('cinema.urls')),
                   path('', include('employee_management.urls')),
                   path('financial/', include('financial_report.urls')),
-                  # path('vendor/', include('vendor.urls'))
+                  path('vendor/', include('vendor.urls'))
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
