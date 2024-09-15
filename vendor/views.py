@@ -11,13 +11,13 @@ from rest_framework.views import APIView
 from rest_framework.renderers import JSONRenderer
 from .serializers import TaxSerializer
 from financial_report.models import Tax
-from employee_management.permissions import IsManager
+from employee_management.permissions import VendorPermission
 
 # Create your views here.
 
 class PurchaseListView(APIView):
     serializer_class = PurchaseSerializer
-    permission_classes = [IsAuthenticated, IsManager]
+    permission_classes = [IsAuthenticated, VendorPermission]
     template_name = 'purchase.html'
 
     def get_queryset(self):
@@ -40,7 +40,7 @@ class PurchaseListView(APIView):
 
 class PurchaseCreateView(APIView):
     serializer_class = PurchaseSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, VendorPermission]
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
@@ -51,7 +51,7 @@ class PurchaseCreateView(APIView):
 
 
 class PurchaseDeleteView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, VendorPermission]
 
     def delete(self, request, purchase_id, format=None):
         purchase = get_object_or_404(Purchase, id=purchase_id)
@@ -60,7 +60,7 @@ class PurchaseDeleteView(APIView):
 
 
 class PurchaseEditAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, VendorPermission]
     renderer_classes = [JSONRenderer]
 
     def get(self, request, purchase_id, format=None):

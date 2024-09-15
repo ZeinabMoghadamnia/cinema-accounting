@@ -12,6 +12,7 @@ from cinema.serializers import TicketSerializer, RevenueSerializer, MovieSeriali
     InventorySerializer
 from .serializers import TaxSerializer
 from financial_report.models import Tax
+from employee_management.permissions import CinemaPermission, VendorPermission
 
 
 # Create your views here.
@@ -19,7 +20,7 @@ from financial_report.models import Tax
 
 class RevenueListView(APIView):
     serializer_class = RevenueSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, CinemaPermission]
     template_name = 'revenue.html'
 
     def get_queryset(self):
@@ -35,7 +36,7 @@ class RevenueListView(APIView):
 
 class RevenueCreateView(APIView):
     serializer_class = RevenueSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, CinemaPermission]
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
@@ -46,7 +47,7 @@ class RevenueCreateView(APIView):
 
 
 class RevenueDeleteView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, CinemaPermission]
 
     def delete(self, request, revenue_id, format=None):
         revenue = get_object_or_404(Revenue, id=revenue_id)
@@ -55,7 +56,7 @@ class RevenueDeleteView(APIView):
 
 
 class RevenueEditAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, CinemaPermission]
     renderer_classes = [JSONRenderer]
 
     def get(self, request, revenue_id, format=None):
@@ -87,7 +88,7 @@ class RevenueEditTemplateView(LoginRequiredMixin, View):
 
 class TicketListView(APIView):
     serializer_class = TicketSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, CinemaPermission]
     template_name = 'tickets.html'
 
     def get_queryset(self):
@@ -103,7 +104,7 @@ class TicketListView(APIView):
 
 class TicketCreateView(APIView):
     serializer_class = TicketSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, CinemaPermission]
     renderer_classes = [JSONRenderer]
 
     def post(self, request, *args, **kwargs):
@@ -115,7 +116,7 @@ class TicketCreateView(APIView):
 
 
 class TicketDeleteView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, CinemaPermission]
 
     def delete(self, request, ticket_id, format=None):
         ticket = get_object_or_404(Ticket, id=ticket_id)
@@ -124,7 +125,7 @@ class TicketDeleteView(APIView):
 
 
 class TicketEditAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, CinemaPermission]
     renderer_classes = [JSONRenderer]
 
     def get(self, request, ticket_id, format=None):
@@ -155,7 +156,7 @@ class TicketEditTemplateView(LoginRequiredMixin, View):
 
 class ExpenseListView(APIView):
     serializer_class = ExpenseSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, CinemaPermission]
     template_name = 'expense.html'
 
     def get_queryset(self):
@@ -171,7 +172,7 @@ class ExpenseListView(APIView):
 
 class ExpenseCreateView(APIView):
     serializer_class = ExpenseSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, CinemaPermission]
     renderer_classes = [JSONRenderer]
 
     def post(self, request, *args, **kwargs):
@@ -183,7 +184,7 @@ class ExpenseCreateView(APIView):
 
 
 class ExpenseDeleteView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, CinemaPermission]
 
     def delete(self, request, expense_id, format=None):
         expense = get_object_or_404(Expense, id=expense_id)
@@ -192,7 +193,7 @@ class ExpenseDeleteView(APIView):
 
 
 class ExpenseEditAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, CinemaPermission]
     renderer_classes = [JSONRenderer]
 
     def get(self, request, expense_id, format=None):

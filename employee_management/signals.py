@@ -21,9 +21,9 @@ def calculate_net_salary(sender, instance, **kwargs):
 
     for perf in performance:
         if perf['performance_type'] == 'overtime':
-            overtime_hours = perf['total_hours']
+            overtime_hours += perf['total_hours']
         elif perf['performance_type'] == 'absence':
-            absence_hours = perf['total_hours']
+            absence_hours += perf['total_hours']
 
     overtime_adjustment = overtime_hours * (1.5 * (instance.salary / 160))
     absence_adjustment = absence_hours * (instance.salary / 160)

@@ -1,19 +1,15 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import JsonResponse
 from django.shortcuts import render
-from django.views import View
-from django.views.generic import TemplateView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated
 from django.db.models import Sum
-from django.urls import path
 from .models import DailyReport
 from employee_management.models import Payroll
 from rest_framework import status
 from django.utils.dateparse import parse_date
 from .serializers import DailyReportSerializer
+
 
 class FinancialReportView(APIView):
     renderer_classes = [TemplateHTMLRenderer]
@@ -96,3 +92,4 @@ class ChartAPIView(APIView):
 
 def chart_view(request):
     return render(request, 'charts.html')
+

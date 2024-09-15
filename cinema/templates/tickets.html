@@ -220,7 +220,6 @@
         }
 
         function cancelEdit(ticketId) {
-            // پنهان کردن فرم ویرایش
             document.getElementById('edit-row-' + ticketId).style.display = 'none';
         }
 
@@ -232,7 +231,7 @@
                 price: document.getElementById('edit_price_' + ticketId).value,
                 date: document.getElementById('edit_date_' + ticketId).value,
                 customers_phone_number: document.getElementById('edit_customers_phone_number_' + ticketId).value,
-                movie_id: document.getElementById('edit_movie_' + ticketId).value,  // اطمینان از اینکه movie_id خوانده می‌شود
+                movie_id: document.getElementById('edit_movie_' + ticketId).value,
             };
 
             const url = `{% url 'cinema:ticket-edit-api' 0 %}`.replace('0', ticketId);
@@ -248,13 +247,13 @@
                 .then(response => response.json().then(data => ({
                     status: response.status,
                     body: data
-                }))) // Get status and body
+                })))
                 .then(result => {
                     if (result.status === 200) {
                         alert('Ticket updated successfully');
                         window.location.reload();
                     } else {
-                        console.error('Failed to update ticket:', result.body);  // Log the detailed error
+                        console.error('Failed to update ticket:', result.body);
                         alert('Failed to update ticket: ' + JSON.stringify(result.body));
                     }
                 })
