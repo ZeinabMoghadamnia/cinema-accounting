@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h2>Revenue List</h2>
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>date</th>
+                <th>ticket sale</th>
+                <th>concession sale</th>
+                <th>other income</th>
+                <th>tax</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for revenue in revenues %}
+                <tr>
+                    <td>{{ revenue.date }}</td>
+                    <td>{{ revenue.ticket_sale }}</td>
+                    <td>{{ revenue.concession_sale }}</td>
+                    <td>{{ revenue.other_income }}</td>
+                    <td>{{ revenue.tax.tax_type }} - {{ revenue.tax.tax_percentage }}%</td>
+                    <td>
+                        <button onclick="loadRevenueForEdit({{ revenue.id }})" class="btn btn-primary">Edit</button>
+                        <button class="btn btn-danger" onclick="deleteRevenue({{ revenue.id }})">Delete</button>
+                    </td>
+                </tr>
+                <tr id="edit-row-{{ revenue.id }}" style="display: none;">
+                    <td colspan="6">
+                        <!-- فرم ویرایش -->
+                        <form id="editRevenueForm-{{ revenue.id }}" method="post" class="row">
+                            {% csrf_token %}
+                            <div class="col col-4 form-group">
+                                <label for="edit_ticket_sale_{{ revenue.id }}">Ticket Sale</label>
+                                <input type="number" class="form-control" id="edit_ticket_sale_{{ revenue.id }}"
+                                       name="ticket_sale" required>
+                            </div>
+                            <div class="col col-4 form-group">
+                                <label for="edit_concession_sale_{{ revenue.id }}">Concession Sale</label>
+                                <input type="number" class="form-control" id="edit_concession_sale_{{ revenue.id }}"
+                                       name="concession_sale" required>
+                            </div>
+                            <div class="col col-4 form-group">
+                                <label for="edit_other_income_{{ revenue.id }}">Other Income</label>
+                                <input type="number" class="form-control" id="edit_other_income_{{ revenue.id }}"
+                                       name="other_income">
+                            </div>
+
+                            <div class="col col-4 form-group">
+                                <label for="edit_tax_{{ revenue.id }}">Tax</label>
+                                <select class="form-control" id="edit_tax_{{ revenue.id }}" name="" required>
+                                    <!-- Filled dynamically with JavaScript -->
+                                </select>
+                            </div>
+                            <div class="col col-4 form-group">
+                                <label for="edit_date_{{ revenue.id }}">Date</label>
+                                <input type="date" class="form-control" id="edit_date_{{ revenue.id }}" name="date"
+                                       required>
+                            </div>
+                            <div class="col col-4 align-items-center d-flex justify-content-center">
+                                <button type="button" class="btn btn-success"
+                                        onclick="saveEditedRevenue({{ revenue.id }})">
+                                    Save Changes
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="cancelEdit({{ revenue.id }})">
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="5">No revenues found.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <h3 id="form-title">Add New Revenue</h3>
+        <form id="revenueForm" method="post" action="{% url 'cinema:revenue-create' %}">
+            {% csrf_token %}
+            <!-- Ticket Sale Field -->
+            <div class="form-group">
+                <label for="ticket_sale">Ticket Sale</label>
+                <input type="number" class="form-control" id="ticket_sale" name="ticket_sale" required>
+            </div>
+
+            <!-- Concession Sale Field -->
+            <div class="form-group">
+                <label for="concession_sale">Concession Sale</label>
+                <input type="number" class="form-control" id="concession_sale" name="concession_sale" required>
+            </div>
+
+            <!-- Other Income Field -->
+            <div class="form-group">
+                <label for="other_income">Other Income</label>
+                <input type="number" class="form-control" id="other_income" name="other_income">
+            </div>
+
+
+            <!-- Tax Field (Dropdown Selection) -->
+            <div class="form-group">
+                <label for="tax">Tax</label>
+                <select class="form-control" id="tax" name="tax_id" required>
+                    <option value="">Select a tax</option>
+                    {% for tax in taxes %}
+                        <option value="{{ tax.id }}">{{ tax.tax_type }} - {{ tax.tax_percentage }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Date Field -->
+            <div class="form-group">
+                <label for="date">Date</label>
+                <input type="date" class="form-control" id="date" name="date" value="{{ date }}" required>
+            </div>
+
+            <button type="submit" class="btn btn-success">Save Revenue</button>
+            <button type="button" class="btn btn-secondary" id="cancelEdit" onclick="resetForm()"
+                    style="display: none;">Cancel
+            </button>
+        </form>
+
+    </div>
+
+
+    <script>
+        function deleteRevenue(revenueId) {
+            if (confirm('Are you sure you want to delete this revenue?')) {
+                fetch(`{% url 'cinema:revenue-delete' 0 %}`.replace('0', revenueId), {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json'
+                    },
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            alert('Revenue deleted successfully');
+                            window.location.reload();
+                        } else {
+                            alert('Failed to delete revenue');
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+        }
+
+    </script>
+    <script>
+        function loadRevenueForEdit(revenueId) {
+            const url = `{% url 'cinema:revenue-edit-api' 0 %}`.replace('0', revenueId);
+
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Revenue not found');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const revenue = data.revenue;
+                    const taxes = data.taxes;
+
+                    // پر کردن فیلدهای فرم با اطلاعات دریافتی
+                    document.getElementById('edit_ticket_sale_' + revenueId).value = revenue.ticket_sale;
+                    document.getElementById('edit_concession_sale_' + revenueId).value = revenue.concession_sale;
+                    document.getElementById('edit_other_income_' + revenueId).value = revenue.other_income;
+                    document.getElementById('edit_date_' + revenueId).value = revenue.date;
+
+
+                    // پر کردن انتخاب مالیات
+                    const taxSelect = document.getElementById('edit_tax_' + revenueId);
+                    taxSelect.innerHTML = '';
+                    taxes.forEach(tax => {
+                        const option = document.createElement('option');
+                        option.value = tax.id;
+                        option.text = `${tax.tax_type} - ${tax.tax_percentage}%`;
+                        option.selected = revenue.tax_id === tax.id;
+                        taxSelect.appendChild(option);
+                    });
+
+                    // نمایش فرم ویرایش زیر سطر مربوطه
+                    document.getElementById('edit-row-' + revenueId).style.display = 'table-row';
+                })
+                .catch(error => console.error('Error loading revenue for edit:', error));
+        }
+
+        function cancelEdit(revenueId) {
+            // پنهان کردن فرم ویرایش
+            document.getElementById('edit-row-' + revenueId).style.display = 'none';
+        }
+
+        function saveEditedRevenue(revenueId) {
+            const data = {
+                ticket_sale: document.getElementById('edit_ticket_sale_' + revenueId).value,
+                concession_sale: document.getElementById('edit_concession_sale_' + revenueId).value,
+                other_income: document.getElementById('edit_other_income_' + revenueId).value,
+                tax_id: document.getElementById('edit_tax_' + revenueId).value,
+                date: document.getElementById('edit_date_' + revenueId).value,
+            };
+            console.log('Tax Value:', data.tax);
+            const url = `{% url 'cinema:revenue-edit-api' 0 %}`.replace('0', revenueId);
+
+            fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert('Revenue updated successfully');
+                        window.location.reload();
+                    } else {
+                        alert('Failed to update revenue');
+                    }
+                })
+                .catch(error => console.error('Error updating revenue:', error));
+        }
+    </script>
+{% endblock %}

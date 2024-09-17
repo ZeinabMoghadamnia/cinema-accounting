@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+    Charts
+{% endblock %}
+
+{% block content %}
+    <head>
+        <meta charset="UTF-8">
+        <title>Revenue Chart</title>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    </head>
+    <body>
+    <div class="container">
+    <h2>Select Date Range</h2>
+    <div class="row my-2">
+        <div class="col px-0 mx-0">
+        <label for="start-date">Start Date:</label>
+        <input type="date" id="start-date" name="start-date">
+            </div>
+        <div class="col px-0 mx-0">
+        <label for="end-date">End Date:</label>
+        <input type="date" id="end-date" name="end-date">
+            </div>
+        <div class="col px-0 mx-0">
+        <button class = "text-light p-1" style="background: #9E6DE2; border-radius: 8px;" id="update-chart">Update Chart</button>
+        </div>
+    </div>
+
+    <canvas id="revenueChart" width="400" height="200"></canvas>
+
+    <script>
+        function fetchDataAndRenderChart(startDate = null, endDate = null) {
+            let url = '/financial/api/daily-report-data/';
+            if (startDate && endDate) {
+                url += `?start_date=${startDate}&end_date=${endDate}`; // ارسال تاریخ به عنوان پارامترهای URL
+            }
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    const labels = data.map(item => item.date);  // لیست تاریخ‌ها
+                    const revenues = data.map(item => item.total_revenue);  // لیست درآمدها
+
+                    const ctx = document.getElementById('revenueChart').getContext('2d');
+
+                    if (window.myChart) {  // اگر نمودار موجود است، آن را نابود کن و دوباره بساز
+                        window.myChart.destroy();
+                    }
+
+                    window.myChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Total Revenue',
+                                data: revenues,
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                x: {
+                                    type: 'time',  // نوع محور x به صورت زمانی
+                                    time: {
+                                        unit: 'day'
+                                    }
+                                },
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            // نمایش نمودار با داده‌های پیش‌فرض
+            fetchDataAndRenderChart();
+
+            // افزودن رویداد برای دکمه به‌روزرسانی
+            document.getElementById('update-chart').addEventListener('click', function () {
+                const startDate = document.getElementById('start-date').value;
+                const endDate = document.getElementById('end-date').value;
+                fetchDataAndRenderChart(startDate, endDate);
+            });
+        });
+    </script>
+    </div>
+    </body>
+{% endblock %}

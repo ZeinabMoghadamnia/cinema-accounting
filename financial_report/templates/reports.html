@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+    Reports
+{% endblock %}
+
+{% block content %}
+<head>
+<title>Financial Reports</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .form-container {
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Financial Reports</h1>
+
+    <div class="form-container">
+        <form method="get" action="{% url 'financial-report:financial-report' %}">
+            <label for="start_date">Start Date:</label>
+            <input type="date" id="start_date" name="start_date" required>
+
+            <label for="end_date">End Date:</label>
+            <input type="date" id="end_date" name="end_date" required>
+
+            <button type="submit" class="p-1 text-light ml-5" style="background: #9E6DE2; border-radius: 8px;">Generate Report</button>
+        </form>
+    </div>
+
+    {% if error %}
+        <div style="color: red;">{{ error }}</div>
+    {% else %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Total Revenue</th>
+                    <th>Total Expense</th>
+                    <th>Total Taxes</th>
+                    <th>Profit</th>
+                    <th>Total Salary</th>
+                    <th>Net Profit After Salary</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for report in reports %}
+                    <tr>
+                        <td>{{ report.date }}</td>
+                        <td>{{ report.total_revenue|default:"-" }}</td>
+                        <td>{{ report.total_expense|default:"-" }}</td>
+                        <td>{{ report.total_taxes|default:"-" }}</td>
+                        <td>{{ report.profit|default:"-" }}</td>
+                        <td>{{ report.total_salary|default:"-" }}</td>
+                        <td>{{ report.net_profit_after_salary|default:"-" }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+</div>
+</body>
+{% endblock %}
